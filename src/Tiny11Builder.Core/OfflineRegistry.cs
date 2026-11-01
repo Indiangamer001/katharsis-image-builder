@@ -138,7 +138,7 @@ internal sealed class OfflineHive : IDisposable
         var job = Path.GetDirectoryName(path);
         while (job is not null && !File.Exists(Path.Combine(job, "job.json"))) job = Path.GetDirectoryName(job);
         if (job is null || !BuildJob.TryGetId(Path.GetFileName(job), out _))
-            throw new InvalidDataException("The offline hive must belong to a Shuddhi image job.");
+            throw new InvalidDataException("The offline hive must belong to a Katharsis image job.");
         ImageFileAccess.ValidateFile(path);
         journal = Path.Combine(job, name + ".hive.json");
         File.WriteAllText(journal, JsonSerializer.Serialize(new HiveMount(name, path), JsonDefaults.Options));

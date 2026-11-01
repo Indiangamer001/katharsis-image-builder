@@ -113,7 +113,7 @@ if (-not $profile.Recipe.SourcePath) {
 }
 $profile.Recipe.SourcePath = (Resolve-Path -LiteralPath $profile.Recipe.SourcePath).Path
 if ($WorkspacePath) { $profile.Recipe.WorkspacePath = $WorkspacePath }
-if (-not $profile.Recipe.WorkspacePath) { $profile.Recipe.WorkspacePath = 'C:\Tiny11Selector' }
+if (-not $profile.Recipe.WorkspacePath) { $profile.Recipe.WorkspacePath = Join-Path $PSScriptRoot 'workspace' }
 if ($OutputPath) { $profile.Recipe.OutputPath = $OutputPath }
 if (-not $profile.Recipe.OutputPath) {
     $profile.Recipe.OutputPath = Join-Path $profile.Recipe.WorkspacePath ('Windows11-Pro-Custom-{0}.iso' -f (Get-Date -Format 'yyyyMMdd-HHmmss'))

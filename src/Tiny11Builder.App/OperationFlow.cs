@@ -228,7 +228,7 @@ internal static class ResumeSupport
             return new(jobFile, "", null, UiText.FromEnglish("That is not a valid job file path."));
         }
         if (!Path.GetFileName(file).Equals(JobFileName, StringComparison.OrdinalIgnoreCase))
-            return new(file, directory, null, UiText.FromEnglish("Choose the job.json file inside the build's shuddhi-… folder."));
+            return new(file, directory, null, UiText.FromEnglish("Choose the job.json file inside the build's katharsis-… folder."));
         if (!hasCheckpoint(directory)) return new(file, directory, null, NoCheckpoint);
         var recipeFile = Path.Combine(directory, recipeFileName);
         if (!File.Exists(recipeFile))
@@ -244,7 +244,7 @@ internal static class ResumeSupport
     {
         var mode = CleanupCatalog.ModeForRecipe(recipe) switch
         {
-            BuildMode.Tiny11 => "Shuddhi Balanced", BuildMode.Tiny11Core => "Suddhi Plus",
+            BuildMode.Tiny11 => "Katharsis Balanced", BuildMode.Tiny11Core => "Katharsis Plus",
             _ => UiText.Get(recipe.Flavor == BuildFlavor.Core ? "Resume.CustomCore" : "Mode.Custom")
         };
         var compression = UiText.Get(recipe.Compression switch

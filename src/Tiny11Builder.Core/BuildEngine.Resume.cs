@@ -238,7 +238,7 @@ public sealed partial class BuildEngine
         var leaf = Path.GetFileName(directory);
         PathSafety.RejectReparsePoints(jobFile);
         if (Path.GetFileName(jobFile) != "job.json" || !BuildJob.TryGetId(leaf, out _))
-            throw new InvalidDataException("Select job.json inside a Shuddhi job directory.");
+            throw new InvalidDataException("Select job.json inside a Katharsis job directory.");
         return directory;
     }
 

@@ -35,7 +35,7 @@ public sealed record WindowsImage(
     public void Validate()
     {
         if (!Installation.Equals("Client", StringComparison.OrdinalIgnoreCase))
-            throw new InvalidDataException("Shuddhi supports Windows 11 client images only. Windows Server images are not supported.");
+            throw new InvalidDataException("Katharsis supports Windows 11 client images only. Windows Server images are not supported.");
         if (!IsSupported)
             throw new InvalidDataException(
                 "Choose a Windows 11 client image, build 22621 (22H2) or newer, in x64 or ARM64 format.");
@@ -95,7 +95,7 @@ public sealed record BuildRecipe
         if (ShuddhiCorePreset && (Mode != BuildMode.Custom || Flavor != BuildFlavor.Regular ||
             WindowsUpdateChoice != ComponentChoice.Remove || ExpertActions is null || ExpertActions.Length != 0 ||
             SelectedOptions is null || !SelectedOptions.ToHashSet(StringComparer.Ordinal).SetEquals(CleanupCatalog.ForMode(BuildMode.Tiny11))))
-            throw new InvalidDataException("Suddhi Plus requires the Balanced removals and Windows Update removal. Its service choices are resolved from the image.");
+            throw new InvalidDataException("Katharsis Plus requires the Balanced removals and Windows Update removal. Its service choices are resolved from the image.");
         if (!Enum.IsDefined(DefenderChoice) || !Enum.IsDefined(WindowsUpdateChoice))
             throw new InvalidDataException("Invalid Defender or Windows Update choice.");
         if ((DefenderChoice != ComponentChoice.Keep || WindowsUpdateChoice != ComponentChoice.Keep) &&

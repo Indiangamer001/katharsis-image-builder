@@ -10,7 +10,7 @@ $root = Split-Path $PSScriptRoot -Parent
 $project = Join-Path $root 'src\Tiny11Builder.App\Tiny11Builder.App.csproj'
 [xml]$projectXml = Get-Content -LiteralPath $project -Raw
 $version = [string]$projectXml.Project.PropertyGroup.Version
-$name = "Shuddhi-$version-win-$Architecture"
+$name = "Katharsis-$version-win-$Architecture"
 $releases = Join-Path $root 'artifacts\release'
 $archive = Join-Path $releases "$name.zip"
 $checksum = "$archive.sha256"
@@ -40,26 +40,26 @@ try {
     }
     if (!$mt) { throw 'Windows SDK mt.exe is required to verify the packaged administrator manifest.' }
     $manifest = Join-Path $stage 'embedded.manifest'
-    & $mt -nologo "-inputresource:$publish\Shuddhi.exe;#1" "-out:$manifest"
+    & $mt -nologo "-inputresource:$publish\Katharsis.exe;#1" "-out:$manifest"
     if ($LASTEXITCODE -ne 0) { throw 'Cannot extract the executable manifest.' }
     [xml]$embedded = Get-Content -LiteralPath $manifest -Raw
     $level = $embedded.SelectSingleNode("//*[local-name()='requestedExecutionLevel']")
     if (!$level -or $level.level -ne 'requireAdministrator' -or $level.uiAccess -ne 'false') {
         throw 'The executable does not require administrator approval.'
     }
-    $executable = [IO.File]::ReadAllBytes((Join-Path $publish 'Shuddhi.exe'))
+    $executable = [IO.File]::ReadAllBytes((Join-Path $publish 'Katharsis.exe'))
     $pe = [BitConverter]::ToInt32($executable, 60)
     $expected = if ($Architecture -eq 'x64') { 0x8664 } else { 0xAA64 }
     if ([BitConverter]::ToUInt16($executable, $pe + 4) -ne $expected) { throw 'Incorrect executable architecture.' }
     foreach ($dependency in @('Tiny11Builder.Core.dll', 'coreclr.dll', 'Microsoft.UI.Xaml.dll')) {
         if (!(Test-Path (Join-Path $publish $dependency))) { throw "Missing self-contained dependency: $dependency" }
     }
-    Copy-Item -LiteralPath (Join-Path $root 'README.md'), (Join-Path $root 'NOTICE.md'), (Join-Path $root 'SHUDDHI-WINUI.md') -Destination $publish
+    Copy-Item -LiteralPath (Join-Path $root 'README.md'), (Join-Path $root 'NOTICE.md'), (Join-Path $root 'KATHARSIS-WINUI.md') -Destination $publish
     Copy-Item -LiteralPath (Join-Path $root 'docs') -Destination (Join-Path $publish 'docs') -Recurse
     Copy-Item -LiteralPath (Join-Path $root 'recipes') -Destination (Join-Path $publish 'recipes') -Recurse
     $cache = if ($env:NUGET_PACKAGES) { $env:NUGET_PACKAGES } else { Join-Path $env:USERPROFILE '.nuget\packages' }
     $licenses = Join-Path $publish 'licenses'
-    $deps = Get-Content -LiteralPath (Join-Path $publish 'Shuddhi.deps.json') -Raw | ConvertFrom-Json
+    $deps = Get-Content -LiteralPath (Join-Path $publish 'Katharsis.deps.json') -Raw | ConvertFrom-Json
     $target = $deps.targets.PSObject.Properties[$deps.runtimeTarget.name].Value
     foreach ($library in $deps.libraries.PSObject.Properties) {
         if ($library.Value.type -ne 'package' -and $library.Name -notlike 'runtimepack.*') { continue }

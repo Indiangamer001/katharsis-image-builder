@@ -8,6 +8,22 @@ namespace Tiny11Builder.Core.Tests;
 [SupportedOSPlatform("windows")]
 public sealed class ServicingToolSelectionTests
 {
+    [Fact]
+    public void Adk_candidates_include_registered_nondefault_kits_root_and_default_location()
+    {
+        var paths = ToolLocator.AdkDirectories(@"D:\Kits\", @"C:\Program Files (x86)", "amd64").ToArray();
+        Assert.Equal(@"D:\Kits\Assessment and Deployment Kit\Deployment Tools\amd64", paths[0]);
+        Assert.Equal(@"C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\amd64", paths[1]);
+        var selected = ToolLocator.SelectDism(paths.Select(path => Path.Combine(path, @"DISM\dism.exe")), path =>
+            path.StartsWith(@"D:\", StringComparison.OrdinalIgnoreCase) ? new Version(10, 0, 26100, 9457) : new Version(10, 0, 26100, 8457));
+        Assert.StartsWith(@"D:\", selected);
+    }
+
+    [Fact]
+    public void Adk_candidates_ignore_relative_registry_values()
+    {
+        Assert.Single(ToolLocator.AdkDirectories(@"relative\path", @"C:\Program Files (x86)", "amd64"));
+    }
     [Theory]
     [InlineData(unchecked((int)0x800B0101))]
     [InlineData(unchecked((int)0x80096010))]

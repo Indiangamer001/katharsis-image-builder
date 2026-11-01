@@ -71,7 +71,32 @@ public sealed partial class MainWindow : Window
     private readonly LanguageCatalogs languageCatalogs;
     private string languagePreference = "system";
     private bool changingLanguage;
-    private readonly string dataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Shuddhi");
+    private readonly string workspaceDirectory = ResolveWorkspaceDirectory();
+    private readonly string dataDirectory = ResolveDataDirectory();
+
+    private static string ResolveWorkspaceDirectory()
+    {
+        try
+        {
+            var settings = Path.Combine(AppContext.BaseDirectory, "workspace-path.txt");
+            if (File.Exists(settings))
+            {
+                var configured = File.ReadAllText(settings).Trim();
+                if (!string.IsNullOrEmpty(configured) && Path.IsPathFullyQualified(configured))
+                    return Path.GetFullPath(configured);
+            }
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException) { }
+        return @"C:\Katharsis";
+    }
+
+    private static string ResolveDataDirectory()
+    {
+        var settings = Path.Combine(AppContext.BaseDirectory, "workspace-path.txt");
+        return File.Exists(settings)
+            ? Path.Combine(ResolveWorkspaceDirectory(), "app-data")
+            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Katharsis");
+    }
 
     public MainWindow()
     {
@@ -99,9 +124,9 @@ public sealed partial class MainWindow : Window
             ShowNotice("An operation is still running.", cancelRequested ? "It is being cancelled. Wait for it to stop before closing." :
                 UiText.Format("App.WaitBeforeClosing", CancelPrompts.ButtonLabel), InfoBarSeverity.Warning);
         };
-        WorkspaceBox.Text = @"C:\Shuddhi";
+        WorkspaceBox.Text = workspaceDirectory;
         SupportPurpose.Text = ProjectSupport.Purpose;
-        OutputBox.Text = Path.Combine(WorkspaceBox.Text, $"Shuddhi-{DateTime.Now:yyyyMMdd-HHmmss}.iso");
+        OutputBox.Text = Path.Combine(WorkspaceBox.Text, $"Katharsis-{DateTime.Now:yyyyMMdd-HHmmss}.iso");
         board.RefreshLanguage();
         BuildStages.ItemsSource = board.Stages;
         progressTimer.Tick += (_, _) => { FlushBuildProgress(); DrainDownload(); };
@@ -348,7 +373,7 @@ public sealed partial class MainWindow : Window
             completed = false;
             coreAcknowledged = false;
             UpdateModePresentation();
-            OutputBox.Text = Path.Combine(Path.GetDirectoryName(OutputBox.Text)!, $"Shuddhi-{DateTime.Now:yyyyMMdd-HHmmss}.iso");
+            OutputBox.Text = Path.Combine(Path.GetDirectoryName(OutputBox.Text)!, $"Katharsis-{DateTime.Now:yyyyMMdd-HHmmss}.iso");
             ResetBuildPage();
             GoStep(1);
             return;
@@ -753,7 +778,7 @@ public sealed partial class MainWindow : Window
     private async void OnChooseWorkspace(object sender, RoutedEventArgs args) =>
         await RunOperation(OperationKind.Choose, async _ => { var path = await PickFolder(); if (path is not null) WorkspaceBox.Text = path; });
     private async void OnChooseOutput(object sender, RoutedEventArgs args) =>
-        await RunOperation(OperationKind.Choose, async _ => { var path = await SaveFile("Shuddhi", ".iso"); if (path is not null) OutputBox.Text = path; });
+        await RunOperation(OperationKind.Choose, async _ => { var path = await SaveFile("Katharsis", ".iso"); if (path is not null) OutputBox.Text = path; });
 
     private void OnSourceChanged(object sender, TextChangedEventArgs args)
     {
@@ -789,7 +814,7 @@ public sealed partial class MainWindow : Window
     {
         if (!ToolLocator.IsAdministrator)
         {
-            ShowNotice("Administrator privileges required.", "Close and reopen Shuddhi.exe, then approve the Windows administrator prompt.", InfoBarSeverity.Warning);
+            ShowNotice("Administrator privileges required.", "Close and reopen Katharsis.exe, then approve the Windows administrator prompt.", InfoBarSeverity.Warning);
             return;
         }
         await RunOperation(OperationKind.Inspect, InspectSourceAsync);
@@ -799,7 +824,7 @@ public sealed partial class MainWindow : Window
     {
         if (!ToolLocator.IsAdministrator)
         {
-            ShowNotice("Image selected.", "Close and reopen Shuddhi.exe with administrator approval to inspect its editions.");
+            ShowNotice("Image selected.", "Close and reopen Katharsis.exe with administrator approval to inspect its editions.");
             return;
         }
         Working("Inspecting the image…");
@@ -963,7 +988,7 @@ public sealed partial class MainWindow : Window
         var allItems = inventory.Select(choice => choice.Item).ToArray();
         await RunOperation(OperationKind.Choose, async token =>
         {
-            var path = await SaveFile("Shuddhi-components", ".txt");
+            var path = await SaveFile("Katharsis-components", ".txt");
             if (path is null) return;
             await File.WriteAllTextAsync(path, InventoryTextExport.Create(allItems), new UTF8Encoding(true), token);
             ShowNotice(UiText.Get("Inventory.Exported"), UiText.Format("Inventory.ExportComplete", allItems.Length, path));
@@ -1080,7 +1105,7 @@ public sealed partial class MainWindow : Window
         DefenderChoice.IsEnabled = !UsesCore;
         WindowsUpdateChoice.IsEnabled = !UsesCore && !UsesShuddhiCore;
         SystemChoiceCoreNote.Visibility = UsesCore || UsesShuddhiCore ? Visibility.Visible : Visibility.Collapsed;
-        SystemChoiceCoreNote.Text = UsesShuddhiCore ? "Suddhi Plus requires Windows Update removal. Defender remains your choice. Eleven additional services and drivers are disabled where present; printing, Bluetooth, cameras, diagnostics and device management may be affected." :
+        SystemChoiceCoreNote.Text = UsesShuddhiCore ? "Katharsis Plus requires Windows Update removal. Defender remains your choice. Eleven additional services and drivers are disabled where present; printing, Bluetooth, cameras, diagnostics and device management may be affected." :
             "Legacy component-store pruning disables Defender and removes update support; turn it off for independent controls.";
         CustomChoices.Visibility = SelectedMode == BuildMode.Custom ? Visibility.Visible : Visibility.Collapsed;
         CustomMediaSettings.Visibility = SelectedMode == BuildMode.Custom ? Visibility.Visible : Visibility.Collapsed;
@@ -1091,7 +1116,7 @@ public sealed partial class MainWindow : Window
         PresetCoreDetails.Visibility = UsesCore || UsesShuddhiCore ? Visibility.Visible : Visibility.Collapsed;
         if (UsesShuddhiCore) PresetCoreDetails.Text = "Includes all Balanced removal groups, mandatory Windows Update removal and the nano11-inspired service list. Defender is independently selectable. Whole component-store pruning is not applied by this preset.";
         CoreWarning.IsOpen = UsesCore || UsesShuddhiCore;
-        if (UsesShuddhiCore) { CoreWarning.Title = "Suddhi Plus removes Windows Update."; CoreWarning.Message = "The preset also disables services and drivers where present; this may affect devices or prevent boot. Defender is independently selectable. Test the image in a VM."; }
+        if (UsesShuddhiCore) { CoreWarning.Title = "Katharsis Plus removes Windows Update."; CoreWarning.Message = "The preset also disables services and drivers where present; this may affect devices or prevent boot. Defender is independently selectable. Test the image in a VM."; }
         else if (UsesCore) { CoreWarning.Title = "Legacy component pruning removes update and recovery support."; CoreWarning.Message = "Legacy pruning removes component files and WinRE, and disables Windows Update and Defender. It is irreversible and should only be tested in an isolated VM."; }
         CoreConsentStatus.Visibility = UsesCore ? Visibility.Visible : Visibility.Collapsed;
         CoreConsentStatus.Text = UiText.Get(coreAcknowledged ? "Core.Accepted" : "Core.WillAsk");
@@ -1219,7 +1244,7 @@ public sealed partial class MainWindow : Window
         Row("Review.Image", image?.Summary ?? UiText.Get("Image.NotInspected"));
         Row("Review.Mode", (ModeChoice.SelectedItem as ComboBoxItem)?.Content);
         if (!UsesCore) { text.AppendLine($"Defender Antivirus: {recipe.DefenderChoice}"); text.AppendLine($"Windows Update: {recipe.WindowsUpdateChoice}"); }
-        if (recipe.ShuddhiCorePreset) text.AppendLine("Suddhi Plus disables these services and drivers where present: " + string.Join(", ", SystemComponentSelection.CoreServiceNames));
+        if (recipe.ShuddhiCorePreset) text.AppendLine("Katharsis Plus disables these services and drivers where present: " + string.Join(", ", SystemComponentSelection.CoreServiceNames));
         if (SelectedMode == BuildMode.Custom) Row("Review.CoreRemovals", YesNo(UsesCore));
         if (recipe.IsoSizeLimitBytes is { } limit) Row("CustomMedia.ReviewLimit", limit);
         Row("Review.Source", recipe.SourcePath);
@@ -1742,7 +1767,7 @@ public sealed partial class MainWindow : Window
     {
         var recipe = CreateRecipe();
         recipe.ValidateOptions();
-        var path = await SaveFile("Shuddhi-recipe", ".json");
+        var path = await SaveFile("Katharsis-recipe", ".json");
         if (path is not null) { recipe.Write(path); ShowNotice("Recipe saved.", "It contains selections and local paths, not downloaded media or credentials."); }
     });
     private async void OnLoadRecipe(object sender, RoutedEventArgs args) => await LoadRecipeAsync(useCustom: false);
@@ -1811,7 +1836,7 @@ public sealed partial class MainWindow : Window
         if (busy || modalOpen) return;
         if (!ToolLocator.IsAdministrator)
         {
-            ShowNotice("Administrator privileges required.", "Close and reopen Shuddhi.exe with administrator approval to recover a workspace.", InfoBarSeverity.Warning);
+            ShowNotice("Administrator privileges required.", "Close and reopen Katharsis.exe with administrator approval to recover a workspace.", InfoBarSeverity.Warning);
             return;
         }
         var path = await PickFile(".json");
@@ -1826,7 +1851,7 @@ public sealed partial class MainWindow : Window
             return;
         }
         if (!await Confirm("Discard this interrupted workspace?",
-            "Select only job.json from the interrupted Shuddhi job. This discards that job's mounted working copy and removes its staged media. " +
+            "Select only job.json from the interrupted Katharsis job. This discards that job's mounted working copy and removes its staged media. " +
             "Its logs, recipe, report and your source ISO are kept. A job whose image was already committed has saved progress and is never discarded here; " +
             "use Resume build for it. Active builds cannot be recovered.",
             "Discard working copy")) return;
@@ -1866,7 +1891,7 @@ public sealed partial class MainWindow : Window
         }
         if (!ToolLocator.IsAdministrator)
         {
-            ShowNotice("Administrator privileges required.", "Close and reopen Shuddhi.exe with administrator approval, then choose Resume build. Nothing was changed.", InfoBarSeverity.Warning);
+            ShowNotice("Administrator privileges required.", "Close and reopen Katharsis.exe with administrator approval, then choose Resume build. Nothing was changed.", InfoBarSeverity.Warning);
             return;
         }
         if (!await Confirm("Resume this build?", ResumeSupport.Describe(original), "Resume")) return;

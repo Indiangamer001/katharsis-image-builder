@@ -35,7 +35,8 @@ internal sealed class BuildJob : IDisposable
 {
     internal static bool TryGetId(string leaf, out string id)
     {
-        id = leaf.StartsWith("shuddhi-", StringComparison.Ordinal) ? leaf[8..] :
+        id = leaf.StartsWith("katharsis-", StringComparison.Ordinal) ? leaf[10..] :
+             leaf.StartsWith("shuddhi-", StringComparison.Ordinal) ? leaf[8..] :
              leaf.StartsWith("tiny11-", StringComparison.Ordinal) ? leaf[7..] : "";
         return Guid.TryParseExact(id, "N", out _);
     }
@@ -56,7 +57,7 @@ internal sealed class BuildJob : IDisposable
     public static BuildJob Create(string workspace, string purpose, bool bufferedLog = false)
     {
         var id = Guid.NewGuid().ToString("N");
-        var directory = Path.Combine(PathSafety.Full(workspace), "shuddhi-" + id);
+        var directory = Path.Combine(PathSafety.Full(workspace), "katharsis-" + id);
         System.IO.Directory.CreateDirectory(directory);
         var jobLock = new FileStream(Path.Combine(directory, "job.lock"), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None);
         StreamWriter? log = null;
@@ -85,7 +86,7 @@ internal sealed class BuildJob : IDisposable
         try { jobLock = new FileStream(Path.Combine(directory, "job.lock"), FileMode.Open, FileAccess.ReadWrite, FileShare.None); }
         catch (Exception error) when (error is FileNotFoundException or DirectoryNotFoundException)
         {
-            throw new InvalidDataException("This folder is not a complete Shuddhi job (job.lock is missing).", error);
+            throw new InvalidDataException("This folder is not a complete Katharsis job (job.lock is missing).", error);
         }
         catch (IOException error)
         {

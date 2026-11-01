@@ -105,6 +105,8 @@ public sealed class SelectableProfileTests
     public void Both_legacy_and_rebranded_job_names_are_validated_without_accepting_arbitrary_names()
     {
         var id = Guid.NewGuid().ToString("N");
+        Assert.True(BuildJob.TryGetId("katharsis-" + id, out var currentId));
+        Assert.Equal(id, currentId);
         Assert.True(BuildJob.TryGetId("shuddhi-" + id, out var newId));
         Assert.Equal(id, newId);
         Assert.True(BuildJob.TryGetId("tiny11-" + id, out var oldId));
@@ -114,11 +116,11 @@ public sealed class SelectableProfileTests
     }
 
     [Fact]
-    public void Newly_created_jobs_use_shuddhi_prefix_and_preserve_the_job_id()
+    public void Newly_created_jobs_use_katharsis_prefix_and_preserve_the_job_id()
     {
         using var fixture = new BuildFixture();
         using var job = BuildJob.Create(fixture.Root, "inventory");
-        Assert.StartsWith("shuddhi-", Path.GetFileName(job.Directory));
+        Assert.StartsWith("katharsis-", Path.GetFileName(job.Directory));
         Assert.True(BuildJob.TryGetId(Path.GetFileName(job.Directory), out var id));
         var state = System.Text.Json.JsonSerializer.Deserialize<JobState>(File.ReadAllText(Path.Combine(job.Directory, "job.json")), JsonDefaults.Options)!;
         Assert.Equal(id, state.Id);

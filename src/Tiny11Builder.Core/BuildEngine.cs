@@ -474,7 +474,7 @@ public sealed partial class BuildEngine
         var leaf = Path.GetFileName(directory);
         PathSafety.RejectReparsePoints(jobFile);
         if (Path.GetFileName(jobFile) != "job.json" || !BuildJob.TryGetId(leaf, out var jobId))
-            throw new InvalidDataException("Select job.json inside a Shuddhi job directory.");
+            throw new InvalidDataException("Select job.json inside a Katharsis job directory.");
         var state = JsonSerializer.Deserialize<JobState>(File.ReadAllText(jobFile), JsonDefaults.Options)
             ?? throw new InvalidDataException("Invalid job marker.");
         if (state.Id != jobId || state.Status == "completed") throw new InvalidDataException("This is not an interrupted job.");

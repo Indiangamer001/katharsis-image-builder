@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Security.Principal;
 using System.Security.Cryptography;
+using Microsoft.Win32;
 
 namespace Tiny11Builder.Core;
 
@@ -19,18 +20,36 @@ public static class ToolLocator
         }
     }
 
-    private static string AdkDirectory => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
-        @"Windows Kits\10\Assessment and Deployment Kit\Deployment Tools",
-        RuntimeInformation.OSArchitecture == Architecture.Arm64 ? "arm64" : "amd64");
+    private static IEnumerable<string> AdkDirectories()
+    {
+        string? kitsRoot = null;
+        try
+        {
+            using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
+            using var key = baseKey.OpenSubKey(@"SOFTWARE\Microsoft\Windows Kits\Installed Roots");
+            kitsRoot = key?.GetValue("KitsRoot10") as string;
+        }
+        catch (Exception error) when (error is UnauthorizedAccessException or System.Security.SecurityException or IOException) { }
+        return AdkDirectories(kitsRoot, Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
+            RuntimeInformation.OSArchitecture == Architecture.Arm64 ? "arm64" : "amd64");
+    }
+
+    internal static IEnumerable<string> AdkDirectories(string? kitsRoot, string programFilesX86, string architecture)
+    {
+        var roots = new List<string>();
+        if (!string.IsNullOrWhiteSpace(kitsRoot) && Path.IsPathFullyQualified(kitsRoot)) roots.Add(kitsRoot);
+        roots.Add(Path.Combine(programFilesX86, "Windows Kits", "10"));
+        return roots.Select(root => Path.Combine(root, "Assessment and Deployment Kit", "Deployment Tools", architecture))
+            .Distinct(StringComparer.OrdinalIgnoreCase);
+    }
 
     public static string FindDism() => FindDism(null);
 
     public static string FindDism(Action<string>? log)
     {
         var system = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), @"System32\dism.exe");
-        var adk = Path.Combine(AdkDirectory, @"DISM\dism.exe");
-        return SelectDism([system, adk], path =>
+        var candidates = new[] { system }.Concat(AdkDirectories().Select(root => Path.Combine(root, @"DISM\dism.exe")));
+        return SelectDism(candidates, path =>
         {
             Validate(path, "dism.exe");
             return ServicingVersionOf(path);
@@ -65,8 +84,8 @@ public static class ToolLocator
     }
     public static string FindOscdimg()
     {
-        var path = Path.Combine(AdkDirectory, @"Oscdimg\oscdimg.exe");
-        return File.Exists(path) ? path : "";
+        return AdkDirectories().Select(root => Path.Combine(root, @"Oscdimg\oscdimg.exe"))
+            .FirstOrDefault(File.Exists) ?? "";
     }
     public static Version VersionOf(string path)
     {
