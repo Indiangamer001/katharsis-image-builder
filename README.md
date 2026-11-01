@@ -4,6 +4,10 @@ Katharsis builds customized Windows 11 installation media from an ISO or extract
 
 ## Screenshots
 
+The main window offers Balanced, Plus and Custom build modes.
+
+![Katharsis Image Builder Welcome screen and build modes](docs/images/katharsis-welcome.png)
+
 The Build settings page lets you keep Microsoft Defender Antivirus and Windows Update. Both are kept by default in Katharsis Balanced.
 
 ![Build settings showing Keep for Defender and Windows Update](docs/images/katharsis-security-settings.png)
