@@ -33,7 +33,7 @@ public static class FilePayloadCatalog
     internal static IReadOnlyList<ImageInventoryItem> Read(string mount)
     {
         var result = new List<ImageInventoryItem>();
-        foreach (var relative in Folders)
+        foreach (var relative in Folders.Concat(SystemComponentSelection.PayloadFolders))
             if (Directory.Exists(Path.Combine(mount, relative)))
                 result.Add(new(ImageItemKind.FilePayload, relative,
                     "Folder and all children. Direct removal bypasses servicing and can break Windows, input or applications.", true));

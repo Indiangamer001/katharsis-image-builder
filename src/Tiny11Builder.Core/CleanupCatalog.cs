@@ -4,6 +4,10 @@ public static class CleanupCatalog
 {
     public static IReadOnlyList<CleanupOption> Options { get; } =
     [
+        new("selector-disable-defender", "Disable Defender policies", "Offline policies only; Windows protection settings may override them.",
+            "System components", OptionKind.Policy, false, false, []) { CustomOnly = true },
+        new("selector-disable-update", "Disable Windows Update policies", "Disable automatic updates and Windows Update access in the offline image.",
+            "System components", OptionKind.Policy, false, false, []) { CustomOnly = true },
         App("copilot-app", "Copilot apps", "Remove preinstalled Copilot apps. Keep shared runtimes and shell components.", true, true,
             "Microsoft.Copilot", "Microsoft.Windows.Copilot", "Microsoft.549981C3F5F10"),
         App("outlook", "New Outlook and Mail", "Remove Outlook and the retired Mail / Calendar apps.", true, true,
@@ -104,6 +108,7 @@ public static class CleanupCatalog
 
     public static BuildMode ModeForRecipe(BuildRecipe recipe)
     {
+        if (recipe.ShuddhiCorePreset) return BuildMode.Tiny11Core;
         if (recipe.Mode is { } mode) return mode;
         var preset = recipe.Flavor == BuildFlavor.Core ? BuildMode.Tiny11Core : BuildMode.Tiny11;
         return !recipe.ShrinkBootImage && recipe.ExpertActions.Length == 0 && recipe.IsoSizeLimitBytes is null &&

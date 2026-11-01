@@ -52,8 +52,28 @@
             <ResourceDictionary.ThemeDictionaries>
                 <!-- Faint headings, labels and arrows are a deliberate look in the ordinary themes. -->
                 <ResourceDictionary x:Key="Default">
-                    <x:Double x:Key="WelcomeTitleOpacity">0.24</x:Double>
-                    <x:Double x:Key="PageHeadingOpacity">0.28</x:Double>
+                    <SolidColorBrush x:Key="ShuddhiSurfaceBrush" Color="#182232"/>
+                    <SolidColorBrush x:Key="ShuddhiCardBrush" Color="#253244"/>
+                    <SolidColorBrush x:Key="ShuddhiBorderBrush" Color="#465369"/>
+                    <SolidColorBrush x:Key="ShuddhiAccentBrush" Color="#FFC477"/>
+                    <SolidColorBrush x:Key="AccentTextFillColorPrimaryBrush" Color="#FFC477"/>
+                    <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#A84E05"/>
+                    <x:Double x:Key="WelcomeTitleOpacity">0.88</x:Double>
+                    <x:Double x:Key="PageHeadingOpacity">0.88</x:Double>
+                    <x:Double x:Key="ActionLabelOpacity">0.90</x:Double>
+                    <x:Double x:Key="ActionArrowOpacity">0.80</x:Double>
+                    <x:Double x:Key="SubtleIconOpacity">0.65</x:Double>
+                    <x:Double x:Key="CardArrowOpacity">0.4</x:Double>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="ShuddhiSurfaceBrush" Color="#F5F2EC"/>
+                    <SolidColorBrush x:Key="ShuddhiCardBrush" Color="#FFFCF7"/>
+                    <SolidColorBrush x:Key="ShuddhiBorderBrush" Color="#DDD3C4"/>
+                    <SolidColorBrush x:Key="ShuddhiAccentBrush" Color="#963D00"/>
+                    <SolidColorBrush x:Key="AccentTextFillColorPrimaryBrush" Color="#963D00"/>
+                    <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#963D00"/>
+                    <x:Double x:Key="WelcomeTitleOpacity">0.58</x:Double>
+                    <x:Double x:Key="PageHeadingOpacity">0.68</x:Double>
                     <x:Double x:Key="ActionLabelOpacity">0.90</x:Double>
                     <x:Double x:Key="ActionArrowOpacity">0.80</x:Double>
                     <x:Double x:Key="SubtleIconOpacity">0.65</x:Double>
@@ -61,6 +81,10 @@
                 </ResourceDictionary>
                 <!-- High contrast needs full-strength text; the system supplies the colors. -->
                 <ResourceDictionary x:Key="HighContrast">
+                    <SolidColorBrush x:Key="ShuddhiSurfaceBrush" Color="{ThemeResource SystemColorWindowColor}"/>
+                    <SolidColorBrush x:Key="ShuddhiCardBrush" Color="{ThemeResource SystemColorButtonFaceColor}"/>
+                    <SolidColorBrush x:Key="ShuddhiBorderBrush" Color="{ThemeResource SystemColorButtonTextColor}"/>
+                    <SolidColorBrush x:Key="ShuddhiAccentBrush" Color="{ThemeResource SystemColorWindowTextColor}"/>
                     <x:Double x:Key="WelcomeTitleOpacity">1</x:Double>
                     <x:Double x:Key="PageHeadingOpacity">1</x:Double>
                     <x:Double x:Key="ActionLabelOpacity">1</x:Double>
@@ -72,8 +96,8 @@
             <local:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
             <local:StateVisibilityConverter x:Key="StateVisibility"/>
             <Style x:Key="Card" TargetType="Border">
-                <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}"/>
-                <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}"/>
+                <Setter Property="Background" Value="{ThemeResource ShuddhiCardBrush}"/>
+                <Setter Property="BorderBrush" Value="{ThemeResource ShuddhiBorderBrush}"/>
                 <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="CornerRadius" Value="12"/>
                 <Setter Property="Padding" Value="24"/>
@@ -86,8 +110,8 @@
                 <Setter Property="FontSize" Value="12"/>
             </Style>
             <Style x:Key="ModeCard" TargetType="Button">
-                <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}"/>
-                <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}"/>
+                <Setter Property="Background" Value="{ThemeResource ShuddhiCardBrush}"/>
+                <Setter Property="BorderBrush" Value="{ThemeResource ShuddhiBorderBrush}"/>
                 <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="CornerRadius" Value="12"/>
                 <Setter Property="Padding" Value="20"/>

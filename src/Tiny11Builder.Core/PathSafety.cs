@@ -94,8 +94,7 @@ public static class PathSafety
     {
         var job = Full(jobDirectory);
         var leaf = Path.GetFileName(job);
-        if (!leaf.StartsWith("tiny11-", StringComparison.Ordinal) ||
-            !Guid.TryParseExact(leaf[7..], "N", out _) ||
+        if (!BuildJob.TryGetId(leaf, out _) ||
             !File.Exists(Path.Combine(job, "job.json")) || !IsInside(path, job))
             throw new InvalidDataException("Refusing to delete a directory not owned by this build.");
         RejectReparsePoints(path);

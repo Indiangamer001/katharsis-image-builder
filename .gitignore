@@ -10,3 +10,13 @@ TestResults/
 *.swm
 *.vhd
 *.vhdx
+engine/
+sessions/
+test-results/
+workspace/
+builds/
+local-build/
+validation/
+Shuddhi Portable*/
+Shuddhi-Portable*.zip
+SHA256-manifest.json

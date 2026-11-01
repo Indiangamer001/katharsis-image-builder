@@ -29,7 +29,7 @@ internal static class PendingOperations
     public static string Refusal(BuildRecipe recipe) => (recipe.Flavor == BuildFlavor.Core ?
         "Core stopped before trimming any component: the image has pending operations, and Core would delete the files needed to finish them at first boot. " :
         "Component payloads were not removed: the image has pending operations, and removing payloads would delete the files needed to finish them at first boot. ") +
-        "Build without .NET 3.5, or build a serviceable Tiny11, which keeps those files. Pending actions are never reverted.";
+        "Build without .NET 3.5, or build a serviceable Shuddhi image, which keeps those files. Pending actions are never reverted.";
 
     private static IReadOnlyList<ImageInventoryItem> Read(string output, string field, ImageItemKind kind)
     {

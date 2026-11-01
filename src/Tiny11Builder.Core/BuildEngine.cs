@@ -120,6 +120,8 @@ public sealed partial class BuildEngine
 
     public async Task<BuildResult> BuildAsync(BuildRecipe recipe, IProgress<BuildProgress>? progress, CancellationToken token)
     {
+        if (recipe.ShuddhiCorePreset || recipe.DefenderChoice != ComponentChoice.Keep || recipe.WindowsUpdateChoice != ComponentChoice.Keep)
+            throw new InvalidDataException("Independent Defender and Update choices must be resolved against the image inventory before building.");
         var elapsed = Stopwatch.StartNew();
         PathSafety.Validate(recipe);
         WindowsUpdates.ValidateSources(recipe);
@@ -471,12 +473,11 @@ public sealed partial class BuildEngine
         var directory = Path.GetDirectoryName(jobFile)!;
         var leaf = Path.GetFileName(directory);
         PathSafety.RejectReparsePoints(jobFile);
-        if (Path.GetFileName(jobFile) != "job.json" || !leaf.StartsWith("tiny11-", StringComparison.Ordinal) ||
-            !Guid.TryParseExact(leaf[7..], "N", out _))
-            throw new InvalidDataException("Select job.json inside a tiny11-owned job directory.");
+        if (Path.GetFileName(jobFile) != "job.json" || !BuildJob.TryGetId(leaf, out var jobId))
+            throw new InvalidDataException("Select job.json inside a Shuddhi job directory.");
         var state = JsonSerializer.Deserialize<JobState>(File.ReadAllText(jobFile), JsonDefaults.Options)
             ?? throw new InvalidDataException("Invalid job marker.");
-        if (state.Id != leaf[7..] || state.Status == "completed") throw new InvalidDataException("This is not an interrupted job.");
+        if (state.Id != jobId || state.Status == "completed") throw new InvalidDataException("This is not an interrupted job.");
         PathSafety.RejectReparsePoints(Path.Combine(directory, "job.lock"));
         // An active build holds this lock, including across separate app instances.
         using var jobLock = new FileStream(Path.Combine(directory, "job.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);

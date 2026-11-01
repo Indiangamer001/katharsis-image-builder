@@ -1,0 +1,18 @@
+{
+  "Version": 1,
+  "Defender": "Keep",
+  "WindowsUpdate": "Keep",
+  "AcceptExperimentalRemoval": false,
+  "Recipe": {
+    "Mode": "Custom",
+    "Flavor": "Regular",
+    "SourcePath": "",
+    "ImageIndex": 1,
+    "WorkspacePath": "C:\\Tiny11Selector",
+    "OutputPath": "",
+    "ExpertActions": [],
+    "SelectedOptions": [],
+    "Compression": "Recovery",
+    "CompactInstallation": true
+  }
+}

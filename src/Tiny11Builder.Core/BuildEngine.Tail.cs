@@ -111,7 +111,7 @@ public sealed partial class BuildEngine
         var checkpoint = new ResumeCheckpoint
         {
             SchemaVersion = ResumeCheckpoint.CurrentSchema,
-            JobId = Path.GetFileName(directory)["tiny11-".Length..],
+            JobId = BuildJob.TryGetId(Path.GetFileName(directory), out var jobId) ? jobId : throw new InvalidDataException("Invalid Shuddhi job directory."),
             Phase = ResumePhase.Committed,
             CreatedUtc = DateTimeOffset.UtcNow,
             RecipeSha256 = recipeHash,

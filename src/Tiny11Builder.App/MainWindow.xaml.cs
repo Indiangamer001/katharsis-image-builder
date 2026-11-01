@@ -20,7 +20,7 @@ public sealed partial class MainWindow : Window
 {
     private readonly BuildEngine engine = new(new ProcessRunner(), new MediaSourceFactory(),
         new OfflineRegistry(), new ImageOperations(), new BuildHost());
-    private readonly List<OptionChoice> options = CleanupCatalog.Options.Select(o => new OptionChoice(o)).ToList();
+    private readonly List<OptionChoice> options = CleanupCatalog.Options.Where(o => !o.Id.StartsWith("selector-", StringComparison.Ordinal)).Select(o => new OptionChoice(o)).ToList();
     private List<InventoryChoice> inventory = [];
     private ExpertAction[] pendingActions = [];
     private int? pendingImageIndex;
@@ -71,7 +71,7 @@ public sealed partial class MainWindow : Window
     private readonly LanguageCatalogs languageCatalogs;
     private string languagePreference = "system";
     private bool changingLanguage;
-    private readonly string dataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Tiny11Builder");
+    private readonly string dataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Shuddhi");
 
     public MainWindow()
     {
@@ -99,9 +99,9 @@ public sealed partial class MainWindow : Window
             ShowNotice("An operation is still running.", cancelRequested ? "It is being cancelled. Wait for it to stop before closing." :
                 UiText.Format("App.WaitBeforeClosing", CancelPrompts.ButtonLabel), InfoBarSeverity.Warning);
         };
-        WorkspaceBox.Text = @"C:\tiny11";
+        WorkspaceBox.Text = @"C:\Shuddhi";
         SupportPurpose.Text = ProjectSupport.Purpose;
-        OutputBox.Text = Path.Combine(WorkspaceBox.Text, $"tiny11-{DateTime.Now:yyyyMMdd-HHmmss}.iso");
+        OutputBox.Text = Path.Combine(WorkspaceBox.Text, $"Shuddhi-{DateTime.Now:yyyyMMdd-HHmmss}.iso");
         board.RefreshLanguage();
         BuildStages.ItemsSource = board.Stages;
         progressTimer.Tick += (_, _) => { FlushBuildProgress(); DrainDownload(); };
@@ -157,8 +157,9 @@ public sealed partial class MainWindow : Window
 
     private FrameworkElement[] Panels => [WelcomePanel, SourcePanel, CleanupPanel, SettingsPanel, ReviewPanel, BuildPanel];
     private BuildMode SelectedMode => (BuildMode)ModeChoice.SelectedIndex;
-    private bool UsesCore => SelectedMode == BuildMode.Tiny11Core ||
-        (SelectedMode == BuildMode.Custom && CustomCoreCheck.IsOn);
+    // Legacy component-store pruning remains an explicit Custom-only action.
+    private bool UsesCore => SelectedMode == BuildMode.Custom && CustomCoreCheck.IsOn;
+    private bool UsesShuddhiCore => SelectedMode == BuildMode.Tiny11Core;
     private static string HostArchitecture => RuntimeInformation.OSArchitecture == Architecture.Arm64 ? "arm64" : "x64";
 
     private void OnContentSizeChanged(object sender, SizeChangedEventArgs args) => UpdateWelcomeLayout();
@@ -347,7 +348,7 @@ public sealed partial class MainWindow : Window
             completed = false;
             coreAcknowledged = false;
             UpdateModePresentation();
-            OutputBox.Text = Path.Combine(Path.GetDirectoryName(OutputBox.Text)!, $"tiny11-{DateTime.Now:yyyyMMdd-HHmmss}.iso");
+            OutputBox.Text = Path.Combine(Path.GetDirectoryName(OutputBox.Text)!, $"Shuddhi-{DateTime.Now:yyyyMMdd-HHmmss}.iso");
             ResetBuildPage();
             GoStep(1);
             return;
@@ -398,8 +399,11 @@ public sealed partial class MainWindow : Window
         SourcePath = SourcePathBox.Text.Trim(), ImageIndex = image?.Index ?? 1,
         WorkspacePath = WorkspaceBox.Text.Trim(), OutputPath = OutputBox.Text.Trim(),
         DismPath = servicingTool, OscdimgPath = isoTool,
-        Mode = SelectedMode, Flavor = UsesCore ? BuildFlavor.Core : BuildFlavor.Regular,
+        Mode = UsesShuddhiCore ? BuildMode.Custom : SelectedMode, Flavor = UsesCore ? BuildFlavor.Core : BuildFlavor.Regular,
+        ShuddhiCorePreset = UsesShuddhiCore,
         CoreAcknowledged = coreAcknowledged, ExpertAcknowledged = ExpertAccepted,
+        DefenderChoice = !UsesCore ? (ComponentChoice)Math.Clamp(DefenderChoice.SelectedIndex, 0, 2) : ComponentChoice.Keep,
+        WindowsUpdateChoice = UsesShuddhiCore ? ComponentChoice.Remove : !UsesCore ? (ComponentChoice)Math.Clamp(WindowsUpdateChoice.SelectedIndex, 0, 2) : ComponentChoice.Keep,
         SelectedOptions = options.Where(o => o.Selected).Select(o => o.Option.Id).ToArray(),
         ExpertActions = inventory.Count > 0 ? inventory.Where(i => i.Selected).Select(i => i.Action).ToArray() : pendingActions,
         Compression = (Compression)CompressionChoice.SelectedIndex,
@@ -749,7 +753,7 @@ public sealed partial class MainWindow : Window
     private async void OnChooseWorkspace(object sender, RoutedEventArgs args) =>
         await RunOperation(OperationKind.Choose, async _ => { var path = await PickFolder(); if (path is not null) WorkspaceBox.Text = path; });
     private async void OnChooseOutput(object sender, RoutedEventArgs args) =>
-        await RunOperation(OperationKind.Choose, async _ => { var path = await SaveFile("tiny11", ".iso"); if (path is not null) OutputBox.Text = path; });
+        await RunOperation(OperationKind.Choose, async _ => { var path = await SaveFile("Shuddhi", ".iso"); if (path is not null) OutputBox.Text = path; });
 
     private void OnSourceChanged(object sender, TextChangedEventArgs args)
     {
@@ -785,7 +789,7 @@ public sealed partial class MainWindow : Window
     {
         if (!ToolLocator.IsAdministrator)
         {
-            ShowNotice("Administrator privileges required.", "Close and reopen Tiny11Builder.exe, then approve the Windows administrator prompt.", InfoBarSeverity.Warning);
+            ShowNotice("Administrator privileges required.", "Close and reopen Shuddhi.exe, then approve the Windows administrator prompt.", InfoBarSeverity.Warning);
             return;
         }
         await RunOperation(OperationKind.Inspect, InspectSourceAsync);
@@ -795,7 +799,7 @@ public sealed partial class MainWindow : Window
     {
         if (!ToolLocator.IsAdministrator)
         {
-            ShowNotice("Image selected.", "Close and reopen Tiny11Builder.exe with administrator approval to inspect its editions.");
+            ShowNotice("Image selected.", "Close and reopen Shuddhi.exe with administrator approval to inspect its editions.");
             return;
         }
         Working("Inspecting the image…");
@@ -959,7 +963,7 @@ public sealed partial class MainWindow : Window
         var allItems = inventory.Select(choice => choice.Item).ToArray();
         await RunOperation(OperationKind.Choose, async token =>
         {
-            var path = await SaveFile("tiny11-components", ".txt");
+            var path = await SaveFile("Shuddhi-components", ".txt");
             if (path is null) return;
             await File.WriteAllTextAsync(path, InventoryTextExport.Create(allItems), new UTF8Encoding(true), token);
             ShowNotice(UiText.Get("Inventory.Exported"), UiText.Format("Inventory.ExportComplete", allItems.Length, path));
@@ -1055,11 +1059,13 @@ public sealed partial class MainWindow : Window
     private void ApplyMode()
     {
         applyingMode = true;
-        var selected = CleanupCatalog.ForMode(SelectedMode);
+        var selected = CleanupCatalog.ForMode(UsesShuddhiCore ? BuildMode.Tiny11 : SelectedMode);
         foreach (var choice in options) choice.Selected = selected.Contains(choice.Option.Id);
         foreach (var item in inventory) item.Selected = false;
         pendingActions = [];
         CustomCoreCheck.IsOn = false;
+        DefenderChoice.SelectedIndex = 0;
+        WindowsUpdateChoice.SelectedIndex = UsesShuddhiCore ? 2 : 0;
         coreAcknowledged = false;
         ExpertConsent.IsChecked = false;
         NativePayloadConsent.IsChecked = false;
@@ -1071,20 +1077,28 @@ public sealed partial class MainWindow : Window
     }
     private void UpdateModePresentation()
     {
+        DefenderChoice.IsEnabled = !UsesCore;
+        WindowsUpdateChoice.IsEnabled = !UsesCore && !UsesShuddhiCore;
+        SystemChoiceCoreNote.Visibility = UsesCore || UsesShuddhiCore ? Visibility.Visible : Visibility.Collapsed;
+        SystemChoiceCoreNote.Text = UsesShuddhiCore ? "Suddhi Plus requires Windows Update removal. Defender remains your choice. Eleven additional services and drivers are disabled where present; printing, Bluetooth, cameras, diagnostics and device management may be affected." :
+            "Legacy component-store pruning disables Defender and removes update support; turn it off for independent controls.";
         CustomChoices.Visibility = SelectedMode == BuildMode.Custom ? Visibility.Visible : Visibility.Collapsed;
         CustomMediaSettings.Visibility = SelectedMode == BuildMode.Custom ? Visibility.Visible : Visibility.Collapsed;
         PresetPreview.Visibility = SelectedMode == BuildMode.Custom ? Visibility.Collapsed : Visibility.Visible;
-        var presetOptions = PresetRemovalPreview.ForMode(SelectedMode);
+        var presetOptions = PresetRemovalPreview.ForMode(UsesShuddhiCore ? BuildMode.Tiny11 : SelectedMode);
         var presetRemovesEdgeFiles = presetOptions.Any(option => option.Id == "edge-files");
         PresetOptionsList.ItemsSource = presetOptions.Select(option => new OptionChoice(option, presetRemovesEdgeFiles)).ToArray();
-        PresetCoreDetails.Visibility = UsesCore ? Visibility.Visible : Visibility.Collapsed;
-        CoreWarning.IsOpen = UsesCore;
+        PresetCoreDetails.Visibility = UsesCore || UsesShuddhiCore ? Visibility.Visible : Visibility.Collapsed;
+        if (UsesShuddhiCore) PresetCoreDetails.Text = "Includes all Balanced removal groups, mandatory Windows Update removal and the nano11-inspired service list. Defender is independently selectable. Whole component-store pruning is not applied by this preset.";
+        CoreWarning.IsOpen = UsesCore || UsesShuddhiCore;
+        if (UsesShuddhiCore) { CoreWarning.Title = "Suddhi Plus removes Windows Update."; CoreWarning.Message = "The preset also disables services and drivers where present; this may affect devices or prevent boot. Defender is independently selectable. Test the image in a VM."; }
+        else if (UsesCore) { CoreWarning.Title = "Legacy component pruning removes update and recovery support."; CoreWarning.Message = "Legacy pruning removes component files and WinRE, and disables Windows Update and Defender. It is irreversible and should only be tested in an isolated VM."; }
         CoreConsentStatus.Visibility = UsesCore ? Visibility.Visible : Visibility.Collapsed;
         CoreConsentStatus.Text = UiText.Get(coreAcknowledged ? "Core.Accepted" : "Core.WillAsk");
         ModeDescription.Text = UiText.FromEnglish(SelectedMode switch
         {
-            BuildMode.Tiny11 => "Original Tiny11 removals, including Edge/WebView2 and OneDrive binaries. Windows Update, Defender and recovery are kept. Choose Custom to change individual removals.",
-            BuildMode.Tiny11Core => "Tiny11 Core removals, including irreversible component pruning. Choose Custom to change individual removals.",
+            BuildMode.Tiny11 => "Balanced removals include Edge, WebView2 and OneDrive binaries. Defender and Windows Update are kept by default and can be changed in Build settings.",
+            BuildMode.Tiny11Core => "Balanced removals plus nano11-inspired service changes and mandatory Windows Update removal. Defender is your choice. Whole component-store pruning is not applied.",
             _ => "Start with nothing selected, then choose what to remove or disable. You can also list individual components, including protected items."
         });
         SourceMode.Text = UiText.Format("Mode.Selected", (ModeChoice.SelectedItem as ComboBoxItem)?.Content);
@@ -1204,6 +1218,8 @@ public sealed partial class MainWindow : Window
         void Row(string key, object? value) => text.AppendLine(UiText.Format(key, value));
         Row("Review.Image", image?.Summary ?? UiText.Get("Image.NotInspected"));
         Row("Review.Mode", (ModeChoice.SelectedItem as ComboBoxItem)?.Content);
+        if (!UsesCore) { text.AppendLine($"Defender Antivirus: {recipe.DefenderChoice}"); text.AppendLine($"Windows Update: {recipe.WindowsUpdateChoice}"); }
+        if (recipe.ShuddhiCorePreset) text.AppendLine("Suddhi Plus disables these services and drivers where present: " + string.Join(", ", SystemComponentSelection.CoreServiceNames));
         if (SelectedMode == BuildMode.Custom) Row("Review.CoreRemovals", YesNo(UsesCore));
         if (recipe.IsoSizeLimitBytes is { } limit) Row("CustomMedia.ReviewLimit", limit);
         Row("Review.Source", recipe.SourcePath);
@@ -1250,7 +1266,10 @@ public sealed partial class MainWindow : Window
         ReviewImage.Text = image?.Summary ?? UiText.Get("Image.NoneSelected");
         ReviewMode.Text = (ModeChoice.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "";
         ReviewRemovals.Text = UiText.Format("Review.RemovalCounts", recipe.SelectedOptions.Length, recipe.ExpertActions.Length) + "\n" +
-            UiText.Get(UsesCore ? "Review.CoreEffects" : SelectedMode == BuildMode.Custom ? "Review.CustomEffects" : "Review.RegularEffects");
+            UiText.Get(UsesCore ? "Review.CoreEffects" : SelectedMode == BuildMode.Custom || recipe.DefenderChoice != ComponentChoice.Keep || recipe.WindowsUpdateChoice != ComponentChoice.Keep ? "Review.CustomEffects" : "Review.RegularEffects") +
+            (UsesCore ? "\nDefender: disabled by Core\nWindows Update: unavailable after Core pruning" :
+                $"\nDefender Antivirus: {recipe.DefenderChoice}\nWindows Update: {recipe.WindowsUpdateChoice}" +
+                (recipe.ShuddhiCorePreset ? "\nAdditional service and driver changes are applied where present." : ""));
         ReviewPaths.Text = UiText.Format("Review.Paths", recipe.OutputPath, recipe.WorkspacePath);
         ReviewOptions.Text = UiText.Format("Review.Options", CompressionLabel(recipe.Compression), OnOff(recipe.TurboMode),
             UiText.Get(recipe.RemoveRedundantData ? "Common.Remove" : "Common.Keep"),
@@ -1273,11 +1292,20 @@ public sealed partial class MainWindow : Window
     private async Task StartBuildAsync()
     {
         BuildRecipe recipe;
-        try { recipe = CreateRecipe(); recipe.ValidateOptions(); PathSafety.Validate(recipe); }
+        try
+        {
+            recipe = CreateRecipe(); recipe.ValidateOptions(); PathSafety.Validate(recipe);
+            if (recipe.ExpertActions.Any(SystemComponentSelection.IsManaged) &&
+                (recipe.DefenderChoice != ComponentChoice.Keep || recipe.WindowsUpdateChoice != ComponentChoice.Keep))
+                throw new InvalidDataException("Use the dedicated Defender and Windows Update controls instead of selecting their individual entries as well.");
+        }
         catch (Exception error) { ShowNotice("The recipe is not ready.", ErrorText.Reason(error), InfoBarSeverity.Error); return; }
         if (!await Confirm("Create this offline Windows image?",
             UiText.Format("Build.Confirmation", recipe.OutputPath, (ModeChoice.SelectedItem as ComboBoxItem)?.Content,
-                recipe.SelectedOptions.Length, recipe.ExpertActions.Length) + "\n" + UpdatePackagesSummary(recipe) +
+                recipe.SelectedOptions.Length, recipe.ExpertActions.Length) +
+            (UsesCore ? "\nDefender: disabled by Core\nWindows Update: unavailable after Core pruning" :
+                $"\nDefender Antivirus: {recipe.DefenderChoice}\nWindows Update: {recipe.WindowsUpdateChoice}" +
+                (recipe.ShuddhiCorePreset ? "\nAdditional services and drivers to disable when present: " + string.Join(", ", SystemComponentSelection.CoreServiceNames) + "\nWhole component-store pruning is not applied by this preset." : "")) + "\n" + UpdatePackagesSummary(recipe) +
             (SetupLabels.Legacy(recipe) is { } legacy ? "\n" + legacy : "") + "\n" + CustomMediaSummary(recipe),
             "Build")) return;
         await RunOperation(OperationKind.Build, async token =>
@@ -1287,7 +1315,13 @@ public sealed partial class MainWindow : Window
             BuildBar.IsIndeterminate = true;
             CurrentMessage.Text = UiText.FromEnglish("Preparing image tools…");
             await EnsureToolsAsync(token);
-            recipe = CreateRecipe();
+            recipe = recipe with { DismPath = servicingTool, OscdimgPath = isoTool };
+            if (recipe.DefenderChoice != ComponentChoice.Keep || recipe.WindowsUpdateChoice != ComponentChoice.Keep)
+            {
+                CurrentMessage.Text = "Scanning the selected image to identify the Defender and Windows Update targets…";
+                var available = await Task.Run(() => engine.InventoryAsync(recipe, BuildProgressReporter(), token), token);
+                recipe = SystemComponentSelection.CompileChoices(recipe, available);
+            }
             BeginBuildRun("Building");
             var reporter = BuildProgressReporter();
             var built = await Task.Run(() => engine.BuildAsync(recipe, reporter, token), token);
@@ -1708,7 +1742,7 @@ public sealed partial class MainWindow : Window
     {
         var recipe = CreateRecipe();
         recipe.ValidateOptions();
-        var path = await SaveFile("tiny11-recipe", ".json");
+        var path = await SaveFile("Shuddhi-recipe", ".json");
         if (path is not null) { recipe.Write(path); ShowNotice("Recipe saved.", "It contains selections and local paths, not downloaded media or credentials."); }
     });
     private async void OnLoadRecipe(object sender, RoutedEventArgs args) => await LoadRecipeAsync(useCustom: false);
@@ -1727,6 +1761,9 @@ public sealed partial class MainWindow : Window
         var portable = string.IsNullOrWhiteSpace(recipe.SourcePath);
         var priorIndex = image?.Index;
         recipe = RecipeSelection.BindPaths(recipe, CreateRecipe());
+        // Old Core recipes retain their original destructive semantics and require renewed consent.
+        if (!recipe.ShuddhiCorePreset && recipe.Mode == BuildMode.Tiny11Core)
+            recipe = recipe with { Mode = BuildMode.Custom };
         ClearInventory();
         SourcePathBox.Text = recipe.SourcePath;
         WorkspaceBox.Text = recipe.WorkspacePath;
@@ -1734,6 +1771,8 @@ public sealed partial class MainWindow : Window
         servicingTool = FindServicingTool();
         applyingMode = true;
         ModeChoice.SelectedIndex = (int)CleanupCatalog.ModeForRecipe(recipe);
+        DefenderChoice.SelectedIndex = (int)recipe.DefenderChoice;
+        WindowsUpdateChoice.SelectedIndex = recipe.ShuddhiCorePreset ? 2 : (int)recipe.WindowsUpdateChoice;
         CustomCoreCheck.IsOn = recipe.Flavor == BuildFlavor.Core && SelectedMode == BuildMode.Custom;
         RecipeSelection.ApplyGroups(options, recipe.SelectedOptions);
         applyingMode = false;
@@ -1772,7 +1811,7 @@ public sealed partial class MainWindow : Window
         if (busy || modalOpen) return;
         if (!ToolLocator.IsAdministrator)
         {
-            ShowNotice("Administrator privileges required.", "Close and reopen Tiny11Builder.exe with administrator approval to recover a workspace.", InfoBarSeverity.Warning);
+            ShowNotice("Administrator privileges required.", "Close and reopen Shuddhi.exe with administrator approval to recover a workspace.", InfoBarSeverity.Warning);
             return;
         }
         var path = await PickFile(".json");
@@ -1787,7 +1826,7 @@ public sealed partial class MainWindow : Window
             return;
         }
         if (!await Confirm("Discard this interrupted workspace?",
-            "Select only job.json from the interrupted tiny11 job. This discards that job's mounted working copy and removes its staged media. " +
+            "Select only job.json from the interrupted Shuddhi job. This discards that job's mounted working copy and removes its staged media. " +
             "Its logs, recipe, report and your source ISO are kept. A job whose image was already committed has saved progress and is never discarded here; " +
             "use Resume build for it. Active builds cannot be recovered.",
             "Discard working copy")) return;
@@ -1827,7 +1866,7 @@ public sealed partial class MainWindow : Window
         }
         if (!ToolLocator.IsAdministrator)
         {
-            ShowNotice("Administrator privileges required.", "Close and reopen Tiny11Builder.exe with administrator approval, then choose Resume build. Nothing was changed.", InfoBarSeverity.Warning);
+            ShowNotice("Administrator privileges required.", "Close and reopen Shuddhi.exe with administrator approval, then choose Resume build. Nothing was changed.", InfoBarSeverity.Warning);
             return;
         }
         if (!await Confirm("Resume this build?", ResumeSupport.Describe(original), "Resume")) return;

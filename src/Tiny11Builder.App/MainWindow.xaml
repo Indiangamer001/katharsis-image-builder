@@ -3,14 +3,14 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:local="using:Tiny11Builder.App"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="Tiny11 Builder">
+    Title="Shuddhi Image Builder">
     <Window.SystemBackdrop><MicaBackdrop Kind="BaseAlt"/></Window.SystemBackdrop>
     <Grid x:Name="Root">
         <Grid.RowDefinitions><RowDefinition Height="48"/><RowDefinition Height="*"/></Grid.RowDefinitions>
         <Grid x:Name="TitleArea" Padding="24,0,140,0" ColumnSpacing="12">
             <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
             <FontIcon Glyph="&#xE7F8;" FontSize="16" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
-            <TextBlock Grid.Column="1" Text="Tiny11 Builder" VerticalAlignment="Center" FontWeight="SemiBold"/>
+            <TextBlock Grid.Column="1" Text="Shuddhi Image Builder" VerticalAlignment="Center" FontWeight="SemiBold"/>
         </Grid>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions><ColumnDefinition Width="248"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -55,8 +55,8 @@
                     </StackPanel>
                 </Grid>
             </ScrollViewer>
-            <Grid Grid.Column="1" Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="16,0,0,0"
-                  BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1,1,0,0">
+            <Grid Grid.Column="1" Background="{ThemeResource ShuddhiSurfaceBrush}" CornerRadius="16,0,0,0"
+                  BorderBrush="{ThemeResource ShuddhiBorderBrush}" BorderThickness="1,1,0,0">
                 <Grid>
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                 <!-- The fixed shell row: Back on the left, Cancel on the right, above the scrolling page and its watermark. -->
@@ -117,13 +117,12 @@
                                         <RowDefinition Height="*"/><RowDefinition Height="0"/><RowDefinition Height="0"/>
                                     </Grid.RowDefinitions>
                                     <Button x:Name="RegularModeCard" Style="{StaticResource ModeCard}" Tag="Tiny11" Click="OnModeCardClick"
-                                            AutomationProperties.Name="Tiny11" AutomationProperties.HelpText="Select Tiny11 and choose a Windows ISO." local:Translation.Properties="AutomationProperties.HelpText=Text.SelectTiny11AndChooseAWindowsISO">
+                                            AutomationProperties.Name="Shuddhi Balanced" AutomationProperties.HelpText="Select Shuddhi Balanced and choose a Windows ISO." local:Translation.Properties="AutomationProperties.HelpText=Text.SelectTiny11AndChooseAWindowsISO">
                                         <Grid RowSpacing="12">
                                             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                                            <FontIcon Glyph="&#xE7F4;" FontSize="64" HorizontalAlignment="Left"
-                                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                                            <Path Width="64" Height="64" HorizontalAlignment="Left" Stretch="Uniform" Stroke="{ThemeResource ShuddhiAccentBrush}" StrokeThickness="2.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Data="M 9,43 C 9,22 22,10 51,9 C 52,37 40,52 19,51 M 13,54 C 20,40 30,30 43,22"/>
                                             <StackPanel Grid.Row="1" Spacing="10">
-                                                <TextBlock Text="Tiny11" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                                <TextBlock Text="Shuddhi Balanced" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap"/>
                                                 <TextBlock Text="Use the original Tiny11 removals. Keep Windows Update and recovery."
                                                            Style="{StaticResource Secondary}" FontSize="13" local:Translation.Properties="Text=Text.UseTheOriginalTiny11RemovalsKeepWindowsUpdateAnd"/>
                                             </StackPanel>
@@ -132,13 +131,12 @@
                                         </Grid>
                                     </Button>
                                     <Button x:Name="CoreModeCard" Grid.Column="1" Style="{StaticResource ModeCard}" Tag="Tiny11Core" Click="OnModeCardClick"
-                                            AutomationProperties.Name="Tiny11 Core" AutomationProperties.HelpText="Select Tiny11 Core and choose a Windows ISO." local:Translation.Properties="AutomationProperties.HelpText=Text.SelectTiny11CoreAndChooseAWindowsISO">
+                                            AutomationProperties.Name="Suddhi Plus" AutomationProperties.HelpText="Select Suddhi Plus and choose a Windows ISO." local:Translation.Properties="AutomationProperties.HelpText=Text.SelectTiny11CoreAndChooseAWindowsISO">
                                         <Grid RowSpacing="12">
                                             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                                            <FontIcon Glyph="&#xE8B7;" FontSize="64" HorizontalAlignment="Left"
-                                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                                            <Path Width="64" Height="64" HorizontalAlignment="Left" Stretch="Uniform" Stroke="{ThemeResource ShuddhiAccentBrush}" StrokeThickness="2.6" StrokeLineJoin="Round" Data="M 32,5 L 55,18 L 55,46 L 32,59 L 9,46 L 9,18 Z M 9,18 L 32,32 L 55,18 M 32,32 L 32,59"/>
                                             <StackPanel Grid.Row="1" Spacing="10">
-                                                <TextBlock Text="Tiny11 Core" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                                <TextBlock Text="Suddhi Plus" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap"/>
                                                 <TextBlock Text="Remove update and recovery support and disable Defender."
                                                            Style="{StaticResource Secondary}" FontSize="13" local:Translation.Properties="Text=Text.RemoveUpdateAndRecoverySupportAndDisableDefender"/>
                                             </StackPanel>
@@ -150,8 +148,7 @@
                                             AutomationProperties.Name="Custom" AutomationProperties.HelpText="Select Custom and choose a Windows ISO." local:Translation.Properties="AutomationProperties.Name=Mode.Custom;AutomationProperties.HelpText=Text.SelectCustomAndChooseAWindowsISO">
                                         <Grid RowSpacing="12">
                                             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                                            <FontIcon Glyph="&#xE713;" FontSize="64" HorizontalAlignment="Left"
-                                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                                            <Path Width="64" Height="64" HorizontalAlignment="Left" Stretch="Uniform" Stroke="{ThemeResource ShuddhiAccentBrush}" StrokeThickness="2.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Data="M 8,15 L 56,15 M 8,32 L 56,32 M 8,49 L 56,49 M 21,9 L 21,21 M 43,26 L 43,38 M 28,43 L 28,55"/>
                                             <StackPanel Grid.Row="1" Spacing="10">
                                                 <TextBlock Text="Custom" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap" local:Translation.Properties="Text=Mode.Custom"/>
                                                 <TextBlock Text="Select individual apps, components and services to remove."
@@ -230,21 +227,21 @@
                             <Border Style="{StaticResource Card}">
                                 <StackPanel Spacing="14">
                                     <ComboBox x:Name="ModeChoice" Visibility="Collapsed" SelectionChanged="OnModeChanged" SelectedIndex="0">
-                                        <ComboBoxItem Content="Tiny11"/>
-                                        <ComboBoxItem Content="Tiny11 Core"/>
+                                        <ComboBoxItem Content="Shuddhi Balanced"/>
+                                        <ComboBoxItem Content="Suddhi Plus"/>
                                         <ComboBoxItem Content="Custom" local:Translation.Properties="Content=Mode.Custom"/>
                                     </ComboBox>
                                     <Grid x:Name="RemovalModeCards" ColumnSpacing="16">
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="0"/><RowDefinition Height="0"/></Grid.RowDefinitions>
                                         <Button x:Name="Tiny11Selection" Style="{StaticResource ModeCard}" MinHeight="140" Click="OnRemovalModeClick" Tag="Tiny11" AutomationProperties.Name="Use Tiny11" local:Translation.Properties="AutomationProperties.Name=Text.UseTiny11">
-                                            <StackPanel Spacing="12"><FontIcon Glyph="&#xE7F4;" FontSize="48" HorizontalAlignment="Left"/><TextBlock Text="Tiny11" FontSize="20" FontWeight="SemiBold"/><TextBlock Text="Original removals. Keep update support." Style="{StaticResource Secondary}" local:Translation.Properties="Text=Text.OriginalRemovalsKeepUpdateSupport"/></StackPanel>
+                                            <StackPanel Spacing="12"><Path Width="48" Height="48" HorizontalAlignment="Left" Stretch="Uniform" Stroke="{ThemeResource ShuddhiAccentBrush}" StrokeThickness="2.6" Data="M 9,43 C 9,22 22,10 51,9 C 52,37 40,52 19,51 M 13,54 C 20,40 30,30 43,22"/><TextBlock Text="Shuddhi Balanced" FontSize="20" FontWeight="SemiBold"/><TextBlock Text="Original removals. Keep update support." Style="{StaticResource Secondary}" local:Translation.Properties="Text=Text.OriginalRemovalsKeepUpdateSupport"/></StackPanel>
                                         </Button>
                                         <Button x:Name="CoreSelection" Grid.Column="1" Style="{StaticResource ModeCard}" MinHeight="140" Click="OnRemovalModeClick" Tag="Tiny11Core" AutomationProperties.Name="Use Tiny11 Core" local:Translation.Properties="AutomationProperties.Name=Text.UseTiny11Core">
-                                            <StackPanel Spacing="12"><FontIcon Glyph="&#xE8B7;" FontSize="48" HorizontalAlignment="Left"/><TextBlock Text="Tiny11 Core" FontSize="20" FontWeight="SemiBold"/><TextBlock Text="Essentials only. For test VMs." Style="{StaticResource Secondary}" local:Translation.Properties="Text=Text.EssentialsOnlyForTestVMs"/></StackPanel>
+                                            <StackPanel Spacing="12"><Path Width="48" Height="48" HorizontalAlignment="Left" Stretch="Uniform" Stroke="{ThemeResource ShuddhiAccentBrush}" StrokeThickness="2.6" StrokeLineJoin="Round" Data="M 32,5 L 55,18 L 55,46 L 32,59 L 9,46 L 9,18 Z M 9,18 L 32,32 L 55,18 M 32,32 L 32,59"/><TextBlock Text="Suddhi Plus" FontSize="20" FontWeight="SemiBold"/><TextBlock Text="Essentials only. For test VMs." Style="{StaticResource Secondary}" local:Translation.Properties="Text=Text.EssentialsOnlyForTestVMs"/></StackPanel>
                                         </Button>
                                         <Button x:Name="CustomSelection" Grid.Column="2" Style="{StaticResource ModeCard}" MinHeight="140" Click="OnRemovalModeClick" Tag="Custom" AutomationProperties.Name="Use Custom" local:Translation.Properties="AutomationProperties.Name=Text.UseCustom">
-                                            <StackPanel Spacing="12"><FontIcon Glyph="&#xE713;" FontSize="48" HorizontalAlignment="Left"/><TextBlock Text="Custom" FontSize="20" FontWeight="SemiBold" local:Translation.Properties="Text=Mode.Custom"/><TextBlock Text="Choose individual removals." Style="{StaticResource Secondary}" local:Translation.Properties="Text=Text.ChooseIndividualRemovals"/></StackPanel>
+                                            <StackPanel Spacing="12"><Path Width="48" Height="48" HorizontalAlignment="Left" Stretch="Uniform" Stroke="{ThemeResource ShuddhiAccentBrush}" StrokeThickness="2.6" Data="M 8,15 L 56,15 M 8,32 L 56,32 M 8,49 L 56,49 M 21,9 L 21,21 M 43,26 L 43,38 M 28,43 L 28,55"/><TextBlock Text="Custom" FontSize="20" FontWeight="SemiBold" local:Translation.Properties="Text=Mode.Custom"/><TextBlock Text="Choose individual removals." Style="{StaticResource Secondary}" local:Translation.Properties="Text=Text.ChooseIndividualRemovals"/></StackPanel>
                                         </Button>
                                     </Grid>
                                     <TextBlock x:Name="ModeDescription" Style="{StaticResource Secondary}"/>
@@ -360,6 +357,22 @@
                             <TextBlock Text="Build settings" Style="{StaticResource PageHeading}" local:Translation.Properties="Text=Text.BuildSettings"/>
                             <TextBlock Text="Choose where to build and how to compress your image."
                                        Style="{StaticResource Secondary}" local:Translation.Properties="Text=Text.ChooseWhereToBuildAndHowToCompressYour"/>
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel Spacing="12">
+                                    <TextBlock Text="Defender and Windows Update" FontSize="22" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Select what happens to each component in the new image. Keep preserves the source state. Disable changes services and policies. Remove deletes identified files and service entries."
+                                               Style="{StaticResource Secondary}"/>
+                                    <ComboBox x:Name="DefenderChoice" Header="Microsoft Defender Antivirus" SelectedIndex="0" HorizontalAlignment="Stretch">
+                                        <ComboBoxItem Content="Keep"/><ComboBoxItem Content="Disable"/><ComboBoxItem Content="Remove (experimental)"/>
+                                    </ComboBox>
+                                    <ComboBox x:Name="WindowsUpdateChoice" Header="Windows Update" SelectedIndex="0" HorizontalAlignment="Stretch">
+                                        <ComboBoxItem Content="Keep"/><ComboBoxItem Content="Disable"/><ComboBoxItem Content="Remove (experimental)"/>
+                                    </ComboBox>
+                                    <TextBlock x:Name="SystemChoiceCoreNote" Visibility="Collapsed" Text="Core always disables Defender and removes update support; choose Balanced or Custom for independent controls." Style="{StaticResource Secondary}"/>
+                                    <TextBlock Text="Removal is experimental, may leave traces or break boot and servicing, and Windows repair may restore files. Defender behavior can be overridden. Test in an isolated VM. The image is scanned automatically before these changes are applied."
+                                               Style="{StaticResource Secondary}"/>
+                                </StackPanel>
+                            </Border>
                             <Border x:Name="CustomMediaSettings" Style="{StaticResource Card}" Visibility="Collapsed">
                                 <StackPanel Spacing="12">
                                     <TextBlock Text="Custom build options" FontSize="22" FontWeight="SemiBold" local:Translation.Properties="Text=CustomMedia.Title"/>

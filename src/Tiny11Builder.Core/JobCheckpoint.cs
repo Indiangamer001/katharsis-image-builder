@@ -133,7 +133,7 @@ internal static class CheckpointStore
         var leaf = Path.GetFileName(PathSafety.Full(jobDirectory));
         if (checkpoint.SchemaVersion != ResumeCheckpoint.CurrentSchema)
             throw new InvalidDataException($"The saved progress uses schema {checkpoint.SchemaVersion}, which this version cannot resume.");
-        if (checkpoint.JobId.Length == 0 || leaf != "tiny11-" + checkpoint.JobId)
+        if (!BuildJob.TryGetId(leaf, out var jobId) || checkpoint.JobId != jobId)
             throw new InvalidDataException("The saved progress belongs to a different job.");
         if (checkpoint.Phase is not (ResumePhase.Committed or ResumePhase.Compressed))
             throw new InvalidDataException($"The saved progress has an unknown phase '{checkpoint.Phase}'.");

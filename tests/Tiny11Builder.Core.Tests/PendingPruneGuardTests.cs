@@ -329,7 +329,7 @@ public sealed class PendingPruneGuardTests
             Assert.True(message.Length <= ErrorText.NoticeLimit, message);
             Assert.Contains("first boot", message);
             Assert.Contains("Build without .NET 3.5", message);
-            Assert.Contains("serviceable Tiny11", message);
+            Assert.Contains("serviceable Shuddhi", message);
             Assert.EndsWith("Pending actions are never reverted.", message);
         }
         Assert.StartsWith("Core stopped before trimming any component", PendingOperations.Refusal(new() { Flavor = BuildFlavor.Core }));

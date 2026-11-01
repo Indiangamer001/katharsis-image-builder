@@ -321,7 +321,7 @@ public sealed class PendingOperationsTests
         var notice = OperationOutcomes.Classify(OperationKind.Build, failure).Message;
         Assert.Equal(cause.Message, notice);
         Assert.Contains("first boot", notice);
-        Assert.Contains("serviceable Tiny11", notice);
+        Assert.Contains("serviceable Shuddhi", notice);
         Assert.Contains("never reverted", notice);
     }
 

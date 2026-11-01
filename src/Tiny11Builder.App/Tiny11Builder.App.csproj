@@ -3,8 +3,8 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows10.0.26100.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
-    <AssemblyName>Tiny11Builder</AssemblyName>
-    <Version>0.2.0</Version>
+    <AssemblyName>Shuddhi</AssemblyName>
+    <Version>1.0.0</Version>
     <RootNamespace>Tiny11Builder.App</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>x64;ARM64</Platforms>

@@ -109,10 +109,14 @@ public sealed class ImageOperations : IImageOperations
                 {
                     using var service = OfflineRegistry.OpenWriteKey(services, action.Identity);
                     service.SetValue("Start", 4, RegistryValueKind.DWord);
+                    if (!Equals(service.GetValue("Start"), 4))
+                        throw new IOException($"Service disable verification failed: {control}\\Services\\{action.Identity}");
                 }
                 else
                 {
                     OfflineRegistry.DeleteKeyTree(services, action.Identity);
+                    if (services.GetSubKeyNames().Contains(action.Identity, StringComparer.OrdinalIgnoreCase))
+                        throw new IOException($"Service removal verification failed: {control}\\Services\\{action.Identity}");
                 }
                 log($"Expert {action.Mode}: {control}\\Services\\{action.Identity}. Shared executable files are not deleted.");
             }
@@ -175,7 +179,7 @@ public sealed class ImageOperations : IImageOperations
         PathSafety.RejectReparsePoints(mount);
         var job = Path.GetDirectoryName(PathSafety.Full(mount))!;
         var leaf = Path.GetFileName(job);
-        if (!leaf.StartsWith("tiny11-", StringComparison.Ordinal) || !Guid.TryParseExact(leaf[7..], "N", out _) ||
+        if (!BuildJob.TryGetId(leaf, out _) ||
             !File.Exists(Path.Combine(job, "job.json")) ||
             !Path.GetFileName(mount).Equals("mount", StringComparison.Ordinal) ||
             !File.Exists(Path.Combine(mount, @"Windows\System32\config\SYSTEM")))
@@ -194,6 +198,7 @@ public sealed class ImageOperations : IImageOperations
         ImageFileAccess.ValidateFile(path);
         log($"Removing payload: {relative}");
         DeleteTree(path, turboMode, token);
+        if (ImageFileAccess.Exists(path)) throw new IOException($"Payload removal verification failed: {relative}");
         log($"Payload removed: {relative}");
     }
 

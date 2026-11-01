@@ -64,7 +64,7 @@ internal static class InventoryTextExport
     public static string Create(IReadOnlyList<ImageInventoryItem> inventory)
     {
         var text = new StringBuilder();
-        text.AppendLine("# Tiny11 Builder — complete image component inventory");
+        text.AppendLine("# Shuddhi Image Builder — complete image component inventory");
         text.AppendLine($"# Components: {inventory.Count}");
         text.AppendLine("# All loaded components are included, regardless of search, type filters or removal selections.");
         text.AppendLine("# This is an inventory, not a removal plan. Identifiers and kinds are unchanged.");

@@ -71,6 +71,15 @@ public static class ToolLocator
     public static Version VersionOf(string path)
     {
         var info = FileVersionInfo.GetVersionInfo(path);
+        // .NET reports the PE fixed-file version for inbox Windows binaries, which is 6.2 for the
+        // 26H2 DISM shim even though the servicing engine is 10.0.26100.x. The string version is
+        // the one that agrees with the DISM banner and with the ADK tools, so prefer it.
+        foreach (var text in new[] { info.FileVersion, info.ProductVersion })
+        {
+            if (string.IsNullOrWhiteSpace(text)) continue;
+            var token = text.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries)[0];
+            if (Version.TryParse(token, out var parsed)) return parsed;
+        }
         return new(info.FileMajorPart, info.FileMinorPart, info.FileBuildPart, info.FilePrivatePart);
     }
     public static Version ServicingVersionOf(string dism)

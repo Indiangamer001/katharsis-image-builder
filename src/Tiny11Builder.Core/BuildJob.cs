@@ -33,6 +33,12 @@ public sealed record JobState(string Id, string Purpose, string Status, string S
 
 internal sealed class BuildJob : IDisposable
 {
+    internal static bool TryGetId(string leaf, out string id)
+    {
+        id = leaf.StartsWith("shuddhi-", StringComparison.Ordinal) ? leaf[8..] :
+             leaf.StartsWith("tiny11-", StringComparison.Ordinal) ? leaf[7..] : "";
+        return Guid.TryParseExact(id, "N", out _);
+    }
     private readonly StreamWriter log;
     private readonly FileStream jobLock;
     private JobState state;
@@ -50,7 +56,7 @@ internal sealed class BuildJob : IDisposable
     public static BuildJob Create(string workspace, string purpose, bool bufferedLog = false)
     {
         var id = Guid.NewGuid().ToString("N");
-        var directory = Path.Combine(PathSafety.Full(workspace), "tiny11-" + id);
+        var directory = Path.Combine(PathSafety.Full(workspace), "shuddhi-" + id);
         System.IO.Directory.CreateDirectory(directory);
         var jobLock = new FileStream(Path.Combine(directory, "job.lock"), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None);
         StreamWriter? log = null;
@@ -79,7 +85,7 @@ internal sealed class BuildJob : IDisposable
         try { jobLock = new FileStream(Path.Combine(directory, "job.lock"), FileMode.Open, FileAccess.ReadWrite, FileShare.None); }
         catch (Exception error) when (error is FileNotFoundException or DirectoryNotFoundException)
         {
-            throw new InvalidDataException("This folder is not a complete tiny11 job (job.lock is missing).", error);
+            throw new InvalidDataException("This folder is not a complete Shuddhi job (job.lock is missing).", error);
         }
         catch (IOException error)
         {

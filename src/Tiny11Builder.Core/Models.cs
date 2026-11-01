@@ -35,7 +35,7 @@ public sealed record WindowsImage(
     public void Validate()
     {
         if (!Installation.Equals("Client", StringComparison.OrdinalIgnoreCase))
-            throw new InvalidDataException("Tiny11 Builder supports Windows 11 client images only. Windows Server images are not supported.");
+            throw new InvalidDataException("Shuddhi supports Windows 11 client images only. Windows Server images are not supported.");
         if (!IsSupported)
             throw new InvalidDataException(
                 "Choose a Windows 11 client image, build 22621 (22H2) or newer, in x64 or ARM64 format.");
@@ -86,9 +86,21 @@ public sealed record BuildRecipe
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool ReuseSourceInstallImage { get; init; }
     public bool ShrinkBootImage { get; init; }
+    public ComponentChoice DefenderChoice { get; init; }
+    public ComponentChoice WindowsUpdateChoice { get; init; }
+    public bool ShuddhiCorePreset { get; init; }
 
     public void ValidateOptions()
     {
+        if (ShuddhiCorePreset && (Mode != BuildMode.Custom || Flavor != BuildFlavor.Regular ||
+            WindowsUpdateChoice != ComponentChoice.Remove || ExpertActions is null || ExpertActions.Length != 0 ||
+            SelectedOptions is null || !SelectedOptions.ToHashSet(StringComparer.Ordinal).SetEquals(CleanupCatalog.ForMode(BuildMode.Tiny11))))
+            throw new InvalidDataException("Suddhi Plus requires the Balanced removals and Windows Update removal. Its service choices are resolved from the image.");
+        if (!Enum.IsDefined(DefenderChoice) || !Enum.IsDefined(WindowsUpdateChoice))
+            throw new InvalidDataException("Invalid Defender or Windows Update choice.");
+        if ((DefenderChoice != ComponentChoice.Keep || WindowsUpdateChoice != ComponentChoice.Keep) &&
+            (Mode is not (BuildMode.Custom or BuildMode.Tiny11) || Flavor != BuildFlavor.Regular))
+            throw new InvalidDataException("Independent Defender and Update choices require a serviceable build mode without Core removals.");
         if (SchemaVersion != 1 || !Enum.IsDefined(Compression) || !Enum.IsDefined(Flavor) ||
             (Mode is { } mode && !Enum.IsDefined(mode)))
             throw new InvalidDataException("This recipe version or compression mode is not supported.");
@@ -134,7 +146,7 @@ public sealed record BuildRecipe
             (Flavor != (Mode == BuildMode.Tiny11Core ? BuildFlavor.Core : BuildFlavor.Regular) ||
              ExpertActions.Length > 0 ||
              !SelectedOptions.ToHashSet(StringComparer.Ordinal).SetEquals(CleanupCatalog.ForMode(Mode.Value))))
-            throw new InvalidDataException("Use Custom for changes to the Tiny11 or Tiny11 Core removal sets.");
+            throw new InvalidDataException("Use Custom for changes to the Balanced or Core removal sets.");
     }
 
     public static BuildRecipe Read(string path)

@@ -12,6 +12,14 @@ public static class PolicyCatalog
         const string content = @"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager";
         switch (id)
         {
+            case "selector-disable-defender":
+                Machine(@"Policies\Microsoft\Windows Defender", "DisableAntiSpyware", 1);
+                Machine(@"Policies\Microsoft\Windows Defender\Real-Time Protection", "DisableRealtimeMonitoring", 1);
+                break;
+            case "selector-disable-update":
+                Machine(@"Policies\Microsoft\Windows\WindowsUpdate\AU", "NoAutoUpdate", 1);
+                Machine(@"Policies\Microsoft\Windows\WindowsUpdate", "DisableWindowsUpdateAccess", 1);
+                break;
             case "ads":
                 foreach (var name in new[] { "DisableWindowsConsumerFeatures", "DisableConsumerAccountStateContent", "DisableCloudOptimizedContent" })
                     Machine(cloud, name, 1);

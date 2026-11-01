@@ -10,6 +10,9 @@ public sealed class DismClient(string executable, IProcessRunner runner, Action<
     public string Executable { get; } = executable;
     public void DisableOptimizedMount() => optimizedMount = false;
 
+    private static readonly TimeSpan[] TransientInitializationRetryDelays =
+        [TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(6), TimeSpan.FromSeconds(12)];
+
     public async Task<string> RunAsync(CancellationToken token, params string[] arguments)
     {
         List<string> effective = ["/English"];
@@ -22,11 +25,30 @@ public sealed class DismClient(string executable, IProcessRunner runner, Action<
         effective.AddRange(arguments);
         if (optimizedMount && arguments.Contains("/Mount-Image", StringComparer.OrdinalIgnoreCase))
             effective.Add("/Optimize");
-        var result = await runner.RunAsync(Executable, effective, output, token).ConfigureAwait(false);
-        if (result.ExitCode is not (0 or 3010))
-            throw new DismCommandException(result.ExitCode, result.Output);
-        return result.Output;
+        // A freshly mounted image can answer the first read-only command before its registry provider
+        // is ready (DISM 87 / 0x80070057). Retrying only read-only commands is safe and covers the
+        // first inventory or build command after a mount.
+        var readOnly = arguments.Any(argument => argument.StartsWith("/Get-", StringComparison.OrdinalIgnoreCase)) &&
+            arguments.Any(argument => argument.StartsWith("/Image:", StringComparison.OrdinalIgnoreCase));
+        for (var attempt = 0; ; attempt++)
+        {
+            var result = await runner.RunAsync(Executable, effective, output, token).ConfigureAwait(false);
+            if (result.ExitCode is 0 or 3010) return result.Output;
+            var error = new DismCommandException(result.ExitCode, result.Output);
+            if (!readOnly || attempt >= TransientInitializationRetryDelays.Length || !IsTransientInitialization(error))
+                throw error;
+            var delay = TransientInitializationRetryDelays[attempt];
+            output?.Invoke($"DISM could not initialize the mounted image yet (exit {error.ExitCode}). " +
+                $"Retrying in {delay.TotalSeconds:0} seconds.");
+            await Task.Delay(delay, token).ConfigureAwait(false);
+        }
     }
+
+    internal static bool IsTransientInitialization(DismCommandException error) =>
+        error.ExitCode == 87 &&
+        (error.Output.Contains("initialization error", StringComparison.OrdinalIgnoreCase) ||
+         error.Output.Contains("0x80070057", StringComparison.OrdinalIgnoreCase) ||
+         error.Output.Contains("OS Version", StringComparison.OrdinalIgnoreCase));
 
     public async Task<IReadOnlyList<WindowsImage>> GetImagesAsync(string imageFile, CancellationToken token)
     {

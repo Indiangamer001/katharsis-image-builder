@@ -109,7 +109,7 @@ public sealed partial class BuildEngine
     {
         var directory = job.Directory;
         var state = job.Current;
-        if (state.Id != Path.GetFileName(directory)["tiny11-".Length..] || state.Purpose != "build")
+        if (!BuildJob.TryGetId(Path.GetFileName(directory), out var savedJobId) || state.Id != savedJobId || state.Purpose != "build")
             throw new InvalidDataException("This job is not an interrupted build, so it cannot be resumed.");
         if (state.Status == "completed") throw new InvalidDataException("This build already completed, so there is nothing to resume.");
         if (state.Status == "recovered")
@@ -176,7 +176,8 @@ public sealed partial class BuildEngine
         }
         if (!staleSetupMount && Directory.Exists(jobMount) && Directory.EnumerateFileSystemEntries(jobMount).Any())
             throw new InvalidDataException("The job's mount folder is not empty, so a mounted image may remain. Resume was refused.");
-        var staleHiveJournals = Directory.EnumerateFiles(directory, "Tiny11Builder_Offline_*.hive.json").Any();
+        var staleHiveJournals = new[] { "Shuddhi_Offline_*.hive.json", "Tiny11Builder_Offline_*.hive.json" }
+            .Any(pattern => Directory.EnumerateFiles(directory, pattern).Any());
 
         // ---- the saved image (positive proof: size, header, SHA-256 and identity, not a timestamp) ----
         if (committed)
@@ -236,9 +237,8 @@ public sealed partial class BuildEngine
         var directory = Path.GetDirectoryName(jobFile)!;
         var leaf = Path.GetFileName(directory);
         PathSafety.RejectReparsePoints(jobFile);
-        if (Path.GetFileName(jobFile) != "job.json" || !leaf.StartsWith("tiny11-", StringComparison.Ordinal) ||
-            !Guid.TryParseExact(leaf[7..], "N", out _))
-            throw new InvalidDataException("Select job.json inside a tiny11-owned job directory.");
+        if (Path.GetFileName(jobFile) != "job.json" || !BuildJob.TryGetId(leaf, out _))
+            throw new InvalidDataException("Select job.json inside a Shuddhi job directory.");
         return directory;
     }
 

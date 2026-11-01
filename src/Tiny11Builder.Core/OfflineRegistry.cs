@@ -125,7 +125,7 @@ public sealed class OfflineRegistry : IOfflineRegistry
 internal sealed class OfflineHive : IDisposable
 {
     private static readonly IntPtr LocalMachine = new(unchecked((int)0x80000002));
-    private readonly string name = "Tiny11Builder_Offline_" + Guid.NewGuid().ToString("N");
+    private readonly string name = "Shuddhi_Offline_" + Guid.NewGuid().ToString("N");
     private readonly string journal;
     private bool unloaded;
     public RegistryKey Root { get; }
@@ -137,9 +137,8 @@ internal sealed class OfflineHive : IDisposable
         if (!File.Exists(path)) throw new FileNotFoundException("The offline registry hive is missing.", path);
         var job = Path.GetDirectoryName(path);
         while (job is not null && !File.Exists(Path.Combine(job, "job.json"))) job = Path.GetDirectoryName(job);
-        if (job is null || !Path.GetFileName(job).StartsWith("tiny11-", StringComparison.Ordinal) ||
-            !Guid.TryParseExact(Path.GetFileName(job)[7..], "N", out _))
-            throw new InvalidDataException("The offline hive must belong to a tiny11 image job.");
+        if (job is null || !BuildJob.TryGetId(Path.GetFileName(job), out _))
+            throw new InvalidDataException("The offline hive must belong to a Shuddhi image job.");
         ImageFileAccess.ValidateFile(path);
         journal = Path.Combine(job, name + ".hive.json");
         File.WriteAllText(journal, JsonSerializer.Serialize(new HiveMount(name, path), JsonDefaults.Options));
@@ -184,13 +183,13 @@ internal sealed class OfflineHive : IDisposable
     public static void RecoverJob(string directory)
     {
         using var privileges = new ImageOperations.PrivilegeScope("SeBackupPrivilege", "SeRestorePrivilege");
-        foreach (var file in Directory.EnumerateFiles(directory, "Tiny11Builder_Offline_*.hive.json"))
+        foreach (var file in new[] { "Shuddhi_Offline_*.hive.json", "Tiny11Builder_Offline_*.hive.json" }.SelectMany(pattern => Directory.EnumerateFiles(directory, pattern)))
         {
             PathSafety.RejectReparsePoints(file);
             var state = JsonSerializer.Deserialize<HiveMount>(File.ReadAllText(file), JsonDefaults.Options) ??
                 throw new InvalidDataException("Invalid offline hive recovery journal.");
-            const string prefix = "Tiny11Builder_Offline_";
-            if (!state.Name.StartsWith(prefix, StringComparison.Ordinal) ||
+            var prefix = new[] { "Shuddhi_Offline_", "Tiny11Builder_Offline_" }.FirstOrDefault(value => state.Name.StartsWith(value, StringComparison.Ordinal));
+            if (prefix is null ||
                 !Guid.TryParseExact(state.Name[prefix.Length..], "N", out _) ||
                 !PathSafety.IsInside(state.Path, directory) ||
                 Path.GetFileName(file) != state.Name + ".hive.json")
