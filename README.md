@@ -14,7 +14,7 @@ The Defender selector also offers Disable and experimental Remove. Windows Updat
 
 ## Build and run
 
-No public binary release is currently available. Build the app from source using the instructions below, then extract the resulting portable archive. The archive includes the .NET and Windows App SDK runtimes.
+Download the Windows x64 portable ZIP from [GitHub Releases](https://github.com/Indiangamer001/katharsis-image-builder/releases/latest), or build it from source using the instructions below. The archive includes the .NET and Windows App SDK runtimes; extract all files before running the app.
 
 1. Open the extracted archive folder.
 2. Open `Katharsis.exe` and approve the Windows administrator prompt.
